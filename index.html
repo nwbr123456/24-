@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24点 · 深空幻梭 | 积分商店+提示+规则</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #03050a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 科幻动态背景 (星云粒子) */
+        #cyber-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(0, 40, 80, 0.4) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(20, 10, 50, 0.6) 0%, transparent 55%),
+                        repeating-linear-gradient(45deg, rgba(0,255,255,0.02) 0px, rgba(0,255,255,0.02) 2px, transparent 2px, transparent 10px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            max-width: 880px;
+            background: rgba(5, 15, 28, 0.4);
+            backdrop-filter: blur(16px) saturate(200%);
+            -webkit-backdrop-filter: blur(16px) saturate(200%);
+            border-radius: 4rem;
+            padding: 2rem 2rem;
+            box-shadow: 0 30px 60px -20px #000,
+                        0 0 0 1px rgba(0, 255, 255, 0.15) inset,
+                        0 0 40px rgba(0, 180, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: box-shadow 0.4s;
+            animation: borderPulse 6s infinite alternate;
+        }
+
+        @keyframes borderPulse {
+            0% { box-shadow: 0 30px 60px -20px #000, 0 0 0 1px rgba(0, 255, 255, 0.2) inset, 0 0 30px rgba(0, 180, 255, 0.3); }
+            100% { box-shadow: 0 40px 70px -15px #000, 0 0 0 2px rgba(100, 200, 255, 0.4) inset, 0 0 60px rgba(0, 240, 255, 0.5); }
+        }
+
+        /* 头部布局：左侧标题+积分，中间关卡，右侧计时器 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .title-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #a8e0ff, #7aaaff, #c0b0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 15px #00a6ff);
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+
+        .score-area {
+            font-size: 1.3rem;
+            color: #ffd966;
+            text-shadow: 0 0 10px #ffaa00;
+            margin-top: 0.2rem;
+        }
+
+        .score-area span {
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: #fff3b0;
+        }
+
+        .level-badge {
+            background: rgba(0, 20, 40, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: 500;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 15px cyan;
+            color: #b0f0ff;
+        }
+
+        .level-badge span {
+            font-weight: 700;
+            color: #fff;
+            margin-left: 0.5rem;
+            font-size: 1.8rem;
+            text-shadow: 0 0 15px cyan;
+        }
+
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(0, 10, 25, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            border: 1px solid #00ffff40;
+            box-shadow: 0 0 20px #00b3ff;
+        }
+
+        .timer-icon {
+            font-size: 1.8rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px cyan);
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #f0fcff;
+            text-shadow: 0 0 15px #00ccff, 0 0 30px #006eff;
+            min-width: 80px;
+            text-align: center;
+            letter-spacing: 3px;
+        }
+
+        .timer-unit {
+            font-size: 1.2rem;
+            color: #8ab3ff;
+        }
+
+        /* 卡牌区域 */
+        .cards-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 2rem 0 2rem;
+            perspective: 1200px;
+        }
+
+        .card {
+            flex: 0 0 auto;
+            width: 130px;
+            height: 170px;
+            background: linear-gradient(145deg, #102436, #05101f);
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 30px -10px black,
+                        inset 0 0 0 1px rgba(0, 255, 255, 0.3),
+                        inset 0 -4px 8px rgba(0,0,0,0.8),
+                        0 0 20px #00a6ff40;
+            border: 1px solid #00ffff60;
+            transition: transform 0.25s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            animation: cardFloat 4s infinite alternate;
+        }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.03) rotateY(3deg);
+            box-shadow: 0 30px 40px -10px #000, 0 0 0 2px cyan, 0 0 40px cyan;
+        }
+
+        .card-value {
+            font-size: 5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0ffc0, #fffac2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px #ffee90, 0 0 40px #4effb5;
+        }
+
+        .card-suit {
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            color: #00ffffaa;
+            text-transform: uppercase;
+        }
+
+        /* 表达式面板 */
+        .expression-panel {
+            background: rgba(0, 10, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 60px;
+            padding: 1.2rem 2rem;
+            margin: 1.2rem 0 1.8rem;
+            border: 1px solid cyan;
+            box-shadow: inset 0 2px 10px #000000, 0 10px 20px -10px black, 0 0 30px #0044ff;
+        }
+
+        .expression-display {
+            background: transparent;
+            width: 100%;
+            border: none;
+            outline: none;
+            color: #e2f0ff;
+            font-size: 2.1rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            caret-color: cyan;
+            text-shadow: 0 0 10px cyan;
+        }
+
+        .expression-display::placeholder {
+            color: #1a4f7a;
+            font-size: 1.4rem;
+        }
+
+        /* 按钮网格 */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin: 1.2rem 0 0.8rem;
+        }
+
+        .btn {
+            background: rgba(0, 25, 45, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid #00a6ff60;
+            border-bottom-width: 3px;
+            border-bottom-color: #002c50;
+            color: #c3f0ff;
+            font-size: 2rem;
+            font-weight: 500;
+            padding: 1rem 0;
+            border-radius: 36px;
+            box-shadow: 0 10px 12px -8px black, inset 0 1px 2px cyan, 0 0 10px #006eff;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .btn.small { font-size: 1.5rem; padding: 0.7rem 0; }
+        .btn.wide { grid-column: span 2; }
+        .btn.operator { background: rgba(0, 60, 100, 0.8); color: #ffffb0; font-size: 2.3rem; }
+        .btn.action { background: rgba(0, 30, 60, 0.9); font-size: 1.8rem; }
+        .btn.equal { background: linear-gradient(145deg, #0077be, #003d66); border-bottom-color: #001d33; color: white; font-weight: 600; text-shadow: 0 2px 10px cyan; }
+
+        .btn:hover {
+            background: #005f9e;
+            border-bottom-color: cyan;
+            transform: translateY(-2px);
+            box-shadow: 0 16px 20px -10px #030613, 0 0 30px cyan;
+        }
+        .btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 1px;
+        }
+
+        /* 底部工具栏 (积分/商店/物品) */
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0 0.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .left-panel {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(0, 20, 35, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            border: 1px solid #00ffcc40;
+            color: #b3ffe0;
+            font-size: 1.3rem;
+        }
+
+        .left-panel span {
+            font-weight: 700;
+            color: #fff;
+            font-size: 1.8rem;
+            margin-left: 0.3rem;
+            text-shadow: 0 0 10px cyan;
+        }
+
+        .right-panel {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .right-panel .btn {
+            font-size: 1.3rem;
+            padding: 0.6rem 1.5rem;
+            background: rgba(0, 50, 70, 0.9);
+        }
+
+        /* 新增提示与规则按钮行 */
+        .hint-rules-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        /* 消息区域 */
+        .message-area {
+            min-height: 4rem;
+            margin: 0.5rem 0 0.5rem;
+            font-size: 1.4rem;
+            text-align: center;
+            color: #bbffff;
+            text-shadow: 0 0 15px magenta;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        .congrats {
+            color: #ffde7a;
+            font-size: 1.8rem;
+            text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff6a00;
+            animation: glowPulse 1.5s infinite;
+        }
+        .sarcasm {
+            color: #ff9680;
+            font-size: 1.7rem;
+            text-shadow: 0 0 20px #ff3300;
+        }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 15px #ffb347; }
+            50% { text-shadow: 0 0 35px #ffd966, 0 0 15px #f1c40f; }
+            100% { text-shadow: 0 0 15px #ffb347; }
+        }
+
+        .foot-note {
+            color: #5f9fbf;
+            font-size: 0.95rem;
+            text-align: center;
+            margin-top: 0.8rem;
+            border-top: 1px dashed #00aaff60;
+            padding-top: 1rem;
+        }
+
+        @media (max-width: 700px) {
+            .game-container { padding: 1.5rem 1rem; }
+            .card { width: 100px; height: 140px; }
+            .card-value { font-size: 4rem; }
+            .btn { font-size: 1.5rem; padding: 0.8rem 0; }
+            .button-grid { gap: 0.6rem; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cyber-canvas"></canvas>
+
+    <div class="game-container">
+        <!-- 头部：标题+积分 | 关卡 | 计时器 -->
+        <div class="header">
+            <div class="title-area">
+                <div class="game-title">◈ 深空·24点 ◈</div>
+                <div class="score-area">积分: <span id="scoreValue">0</span></div>
+            </div>
+            <div class="level-badge">关卡 <span id="levelDisplay">1</span></div>
+            <div class="timer-section">
+                <span class="timer-icon">⌛</span>
+                <span id="timerDisplay" class="timer-display">60</span>
+                <span class="timer-unit">秒</span>
+            </div>
+        </div>
+
+        <!-- 四张卡牌 -->
+        <div class="cards-row" id="cardsContainer"></div>
+
+        <!-- 表达式显示区 -->
+        <div class="expression-panel">
+            <input type="text" id="exprInput" class="expression-display" readonly placeholder="点击卡牌和运算符构建算式" value="">
+        </div>
+
+        <!-- 按钮面板 -->
+        <div class="button-grid">
+            <div class="btn operator" data-op="+">+</div>
+            <div class="btn operator" data-op="−">−</div>
+            <div class="btn operator" data-op="*">×</div>
+            <div class="btn operator" data-op="/">÷</div>
+            <div class="btn small" data-op="(">(</div>
+            <div class="btn small" data-op=")">)</div>
+
+            <div class="btn action wide" id="backspaceBtn">⌫ 退格</div>
+            <div class="btn action" id="clearBtn">C 清空</div>
+            <div class="btn equal wide" id="calculateBtn">= 计算</div>
+        </div>
+
+        <!-- 刷新当前关卡 -->
+        <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+            <div class="btn action" id="refreshBtn" style="padding: 0.6rem 2rem; font-size: 1.3rem;">⟳ 量子重洗</div>
+        </div>
+
+        <!-- 底部工具栏：物品栏 + 商店 -->
+        <div class="game-footer">
+            <div class="left-panel">
+                <span>🔮 跳关卡:</span>
+                <span id="jumpCardCount">0</span>
+                <div class="btn small" id="useJumpCardBtn" style="padding: 0.4rem 1.2rem; font-size: 1.2rem;">使用</div>
+            </div>
+            <div class="right-panel">
+                <div class="btn small" id="buyJumpCardBtn" style="padding: 0.6rem 1.8rem;">🛒 购买跳关卡 (100积分)</div>
+            </div>
+        </div>
+
+        <!-- 提示与规则按钮行 -->
+        <div class="hint-rules-row">
+            <div class="btn small" id="hintBtn">💡 提示</div>
+            <div class="btn small" id="rulesBtn">📖 规则</div>
+        </div>
+
+        <div id="messageBox" class="message-area"></div>
+        <div class="foot-note">⚡ 每关限时 · 两关减5秒 · 最少10秒 · 剩余时间变积分 ⚡</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 科幻粒子背景 (Canvas) ----------
+            const canvas = document.getElementById('cyber-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+
+            function initParticles() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+
+                const particleCount = 120;
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 2.5 + 1,
+                        speedX: (Math.random() - 0.5) * 0.35,
+                        speedY: (Math.random() - 0.5) * 0.25,
+                        color: `rgba(${100 + Math.random()*100}, ${150 + Math.random()*100}, 255, ${Math.random()*0.5+0.3})`,
+                        glow: Math.random() * 0.8 + 0.4
+                    });
+                }
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = '#03050a';
+                ctx.fillRect(0, 0, width, height);
+
+                let gradient = ctx.createRadialGradient(width*0.3, height*0.4, 100, width*0.3, height*0.4, 800);
+                gradient.addColorStop(0, 'rgba(0,100,200,0.15)');
+                gradient.addColorStop(1, 'rgba(0,0,30,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                gradient = ctx.createRadialGradient(width*0.8, height*0.7, 200, width*0.8, height*0.7, 1000);
+                gradient.addColorStop(0, 'rgba(80,20,150,0.2)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                for (let p of particles) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = '#aaccff';
+                    ctx.shadowBlur = 12 * p.glow;
+                    ctx.fill();
+
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    if (p.x < 0) p.x = width;
+                    if (p.x > width) p.x = 0;
+                    if (p.y < 0) p.y = height;
+                    if (p.y > height) p.y = 0;
+                }
+                ctx.shadowBlur = 0;
+                requestAnimationFrame(drawParticles);
+            }
+
+            window.addEventListener('resize', () => {
+                initParticles();
+            });
+            initParticles();
+            drawParticles();
+
+            // ---------- 游戏核心 ----------
+            let currentLevel = 1;
+            let currentCards = [];
+            let currentExpr = '';
+
+            // 积分和跳关卡
+            let globalScore = 0;
+            let jumpCards = 0;
+
+            // 计时相关
+            let timeLeft = 60;
+            let timeLimitForThisLevel = 60;
+            let timerInterval = null;
+            const INITIAL_TIME = 60;
+            const MIN_TIME = 10;
+
+            // DOM 元素
+            const levelSpan = document.getElementById('levelDisplay');
+            const cardsDiv = document.getElementById('cardsContainer');
+            const exprInput = document.getElementById('exprInput');
+            const messageBox = document.getElementById('messageBox');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const scoreSpan = document.getElementById('scoreValue');
+            const jumpCardSpan = document.getElementById('jumpCardCount');
+
+            // 更新积分显示
+            function updateScoreDisplay() {
+                scoreSpan.textContent = globalScore;
+            }
+            // 更新跳关卡显示
+            function updateJumpCardDisplay() {
+                jumpCardSpan.textContent = jumpCards;
+            }
+
+            // 计算本关时间上限
+            function calcTimeLimit(level) {
+                let deduction = Math.floor((level - 1) / 2) * 5;
+                return Math.max(MIN_TIME, INITIAL_TIME - deduction);
+            }
+
+            // 停止计时器
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+
+            // 启动计时器
+            function startTimer() {
+                stopTimer();
+                timerInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    timerDisplay.textContent = timeLeft;
+
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        timerDisplay.textContent = '0';
+                        stopTimer();
+                        messageBox.innerHTML = '<span class="sarcasm">⏰ 闯关失败，从头再来...</span>';
+                        resetGame();
+                    }
+                }, 1000);
+            }
+
+            // 重置整个游戏
+            function resetGame() {
+                stopTimer();
+                currentLevel = 1;
+                levelSpan.textContent = currentLevel;
+                timeLimitForThisLevel = calcTimeLimit(currentLevel);
+                timeLeft = timeLimitForThisLevel;
+                timerDisplay.textContent = timeLeft;
+                // 重置积分和跳关卡
+                globalScore = 0;
+                jumpCards = 0;
+                updateScoreDisplay();
+                updateJumpCardDisplay();
+                // 生成新卡牌
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                startTimer();
+            }
+
+            // 加载新关卡 (进入下一关)
+            function loadNewLevel() {
+                stopTimer();
+                currentLevel++;
+                levelSpan.textContent = currentLevel;
+                timeLimitForThisLevel = calcTimeLimit(currentLevel);
+                timeLeft = timeLimitForThisLevel;
+                timerDisplay.textContent = timeLeft;
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                startTimer();
+            }
+
+            // 刷新当前关卡
+            function refreshSameLevel() {
+                stopTimer();
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                timeLeft = timeLimitForThisLevel;
+                timerDisplay.textContent = timeLeft;
+                messageBox.innerHTML = '';
+                startTimer();
+            }
+
+            // 24点可解性 & 生成卡牌（数字1-10，去掉11-13）
+            const EPS = 1e-6;
+            function isCloseTo24(val) {
+                return Math.abs(val - 24) < EPS;
+            }
+
+            // 判断是否有解 (原有)
+            function hasSolution(nums) {
+                if (nums.length === 1) return isCloseTo24(nums[0]);
+                const n = nums.length;
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        const a = nums[i];
+                        const b = nums[j];
+                        const remaining = nums.filter((_, idx) => idx !== i && idx !== j);
+                        const candidates = [
+                            a + b,
+                            a * b,
+                            a - b,
+                            b - a,
+                            a !== 0 ? b / a : null,
+                            b !== 0 ? a / b : null
+                        ];
+                        const results = new Set();
+                        for (let val of candidates) {
+                            if (val !== null && !isNaN(val)) {
+                                results.add(Math.round(val * 1e8) / 1e8);
+                            }
+                        }
+                        for (let val of results) {
+                            if (hasSolution([val, ...remaining])) return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            // 新增：寻找一个可行解，返回表达式字符串（如果无解返回null）
+            function findSolution(nums) {
+                if (nums.length === 1) {
+                    if (isCloseTo24(nums[0])) return nums[0].toString();
+                    else return null;
+                }
+                const n = nums.length;
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        const a = nums[i];
+                        const b = nums[j];
+                        const remaining = nums.filter((_, idx) => idx !== i && idx !== j);
+
+                        // 尝试六种运算
+                        const ops = [
+                            { op: '+', func: (x,y) => x + y },
+                            { op: '*', func: (x,y) => x * y },
+                            { op: '-', func: (x,y) => x - y },
+                            { op: '-', func: (x,y) => y - x }, // 注意顺序
+                            { op: '/', func: (x,y) => x / y },
+                            { op: '/', func: (x,y) => y / x }
+                        ];
+                        for (let k = 0; k < ops.length; k++) {
+                            const { op, func } = ops[k];
+                            // 排除除零
+                            if ((op === '/' && Math.abs(func(a,b)) === Infinity) || isNaN(func(a,b))) continue;
+                            const val = func(a,b);
+                            // 递归求解
+                            const subResult = findSolution([val, ...remaining]);
+                            if (subResult !== null) {
+                                // 构建表达式，根据运算顺序加括号
+                                let leftExpr = a.toString();
+                                let rightExpr = b.toString();
+                                // 如果是减法或除法且顺序重要，注意谁减谁
+                                let expr;
+                                if (k === 0) expr = `(${leftExpr} + ${rightExpr})`;
+                                else if (k === 1) expr = `(${leftExpr} * ${rightExpr})`;
+                                else if (k === 2) expr = `(${leftExpr} - ${rightExpr})`;
+                                else if (k === 3) expr = `(${rightExpr} - ${leftExpr})`;
+                                else if (k === 4) expr = `(${leftExpr} / ${rightExpr})`;
+                                else if (k === 5) expr = `(${rightExpr} / ${leftExpr})`;
+                                // 将子结果中的表达式替换？但子结果已经包含整体表达式，我们只需要返回当前组合
+                                // 实际上 subResult 是剩余数字组成的表达式，我们需要把当前运算作为最外层
+                                // 但 subResult 是一个表达式字符串，它代表 [val, ...remaining] 的计算结果
+                                // 我们需要把 val 替换为当前运算表达式，然后与 remaining 组合？这比较复杂。
+                                // 简便方法：递归返回时，直接返回当前运算的字符串，并假设子结果已经处理好。
+                                // 但这里子结果是以 val 为第一个元素的表达式，而我们需要把 val 替换为 (a op b)。
+                                // 所以我们需要知道 subResult 的具体形式，然后替换第一个数字为表达式。
+                                // 另一种方法：在递归中传递表达式构建。为了简化，我们采用另一种策略：
+                                // 在递归中，当只剩一个数时，返回该数字字符串；否则，对于当前选中的两个数，计算出 val，
+                                // 然后递归得到剩余部分的表达式（假设剩余部分已经是一个表达式），最后组合。
+                                // 但剩余部分表达式可能用到 val 作为整体，所以我们可以把 val 当作一个占位符，
+                                // 在递归返回后，将占位符替换为 (a op b)。这需要递归返回的表达式包含占位符。
+                                // 为了简化实现，我们直接修改递归函数，让它返回表达式字符串，并且每次组合时加上括号。
+
+                                // 重新设计：findSolution 返回一个对象 { expr: string, value: number }? 但 value 可以由 expr 计算。
+                                // 这里采用简单方法：直接返回带括号的表达式，并假设子结果已经包含了剩余数字的运算。
+                                // 但是子结果中可能包含 val 这个数字，而我们需要将 val 替换为 (a op b)。所以需要子结果表达式中的 val 被替换。
+                                // 我们可以让递归返回的表达式是剩余部分（不含当前运算），然后当前层将 (a op b) 与剩余部分组合。
+                                // 但剩余部分可能是一个复合表达式，需要知道如何插入当前结果。例如剩余部分表达式可能是 "((c+d)*e)"，而我们需要把 (a op b) 作为其中一个操作数，但不知道位置。
+                                // 所以更好的方法是采用标准的24点求解算法，直接生成所有可能的表达式，并返回第一个有效的。
+                                // 考虑到时间，我们可以采用一种简化的方法：由于只有4个数，可以暴力枚举所有可能的运算顺序和括号组合。
+                                // 但为了快速实现，我们可以使用现有的 hasSolution 逻辑，但改为记录表达式。但那样改动较大。
+                                // 作为替代，我们可以预先定义几种表达式模板，然后尝试填入数字和运算符。但这样可能漏解。
+                                // 最稳妥的方法是采用递归构造表达式，同时传递表达式字符串。下面重新实现一个递归函数，返回表达式字符串。
+
+                                // 我们重新实现一个函数 solve(nums)，返回表达式字符串，如果无解返回 null。
+                                // 为了简化，我们让递归返回表达式，同时假设每次运算都加括号。
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // 重新实现 findSolution，返回表达式字符串
+            function findSolution(nums) {
+                // 将数字转换为字符串，并记录值和表达式
+                let items = nums.map(n => ({ val: n, expr: n.toString() }));
+                return search(items);
+            }
+
+            function search(items) {
+                if (items.length === 1) {
+                    if (isCloseTo24(items[0].val)) return items[0].expr;
+                    else return null;
+                }
+                const n = items.length;
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        const a = items[i];
+                        const b = items[j];
+                        const remaining = items.filter((_, idx) => idx !== i && idx !== j);
+
+                        // 六种运算
+                        const ops = [
+                            { op: '+', func: (x,y) => x + y, expr: (x,y) => `(${x} + ${y})` },
+                            { op: '*', func: (x,y) => x * y, expr: (x,y) => `(${x} * ${y})` },
+                            { op: '-', func: (x,y) => x - y, expr: (x,y) => `(${x} - ${y})` },
+                            { op: '-', func: (x,y) => y - x, expr: (x,y) => `(${y} - ${x})` },
+                            { op: '/', func: (x,y) => x / y, expr: (x,y) => `(${x} / ${y})` },
+                            { op: '/', func: (x,y) => y / x, expr: (x,y) => `(${y} / ${x})` }
+                        ];
+
+                        for (let op of ops) {
+                            const val = op.func(a.val, b.val);
+                            if (isNaN(val) || !isFinite(val)) continue;
+                            const expr = op.expr(a.expr, b.expr);
+                            const newItem = { val, expr };
+                            const result = search([newItem, ...remaining]);
+                            if (result) return result;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            function generateValidCards() {
+                const maxAttempts = 400;
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    // 数字1-10
+                    const candidate = [
+                        Math.floor(Math.random() * 10) + 1,
+                        Math.floor(Math.random() * 10) + 1,
+                        Math.floor(Math.random() * 10) + 1,
+                        Math.floor(Math.random() * 10) + 1
+                    ];
+                    const allEqual = candidate.every(v => v === candidate[0]);
+                    if (allEqual) continue;
+                    if (hasSolution(candidate)) {
+                        return candidate;
+                    }
+                }
+                return [3, 4, 6, 8]; // 保底
+            }
+
+            // 渲染卡牌
+            function renderCards() {
+                let html = '';
+                currentCards.forEach((val, idx) => {
+                    const suitSymbol = ['♠', '♥', '♦', '♣'][idx % 4];
+                    html += `
+                        <div class="card" data-card-value="${val}" data-card-index="${idx}">
+                            <div class="card-value">${val}</div>
+                            <div class="card-suit">${suitSymbol}</div>
+                        </div>
+                    `;
+                });
+                cardsDiv.innerHTML = html;
+
+                document.querySelectorAll('.card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const val = card.getAttribute('data-card-value');
+                        currentExpr += val;
+                        exprInput.value = currentExpr;
+                    });
+                });
+            }
+
+            // 检查数字使用是否恰好为卡牌
+            function isNumbersMatch(expr, cards) {
+                const numberMatches = expr.match(/\d+/g);
+                if (!numberMatches) return cards.length === 0;
+                const exprNumbers = numberMatches.map(Number).sort((a,b)=>a-b);
+                const cardNumbers = [...cards].sort((a,b)=>a-b);
+                if (exprNumbers.length !== cardNumbers.length) return false;
+                for (let i=0; i<exprNumbers.length; i++) {
+                    if (exprNumbers[i] !== cardNumbers[i]) return false;
+                }
+                return true;
+            }
+
+            // 处理计算
+            function handleCalculate() {
+                if (!currentExpr.trim()) {
+                    messageBox.innerHTML = '📡 请先构建表达式';
+                    return;
+                }
+
+                if (!isNumbersMatch(currentExpr, currentCards)) {
+                    messageBox.innerHTML = '<span class="sarcasm">不是哥们你这么菜吗</span> (数字必须每个用一次)';
+                    return;
+                }
+
+                let result;
+                try {
+                    const safeExpr = currentExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+                    result = eval(safeExpr);
+                    if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) throw new Error();
+                } catch (e) {
+                    messageBox.innerHTML = '<span class="sarcasm">不是哥们你这么菜吗</span> (算式无效)';
+                    return;
+                }
+
+                if (isCloseTo24(result)) {
+                    // 通关：积分累加剩余时间
+                    globalScore += timeLeft;
+                    updateScoreDisplay();
+                    // 弹出对话框
+                    alert('恭喜通关，进入下一关');
+                    // 进入下一关
+                    loadNewLevel();
+                } else {
+                    messageBox.innerHTML = `<span class="sarcasm">不是哥们你这么菜吗</span> (结果 = ${result})`;
+                }
+            }
+
+            // 提示功能
+            function showHint() {
+                const solution = findSolution(currentCards);
+                if (solution) {
+                    messageBox.innerHTML = `💡 提示：${solution} = 24`;
+                } else {
+                    messageBox.innerHTML = '<span class="sarcasm">无法找到解法？这不应该发生。</span>';
+                }
+            }
+
+            // 显示规则
+            function showRules() {
+                alert(
+                    "📖 游戏规则：\n\n" +
+                    "1. 每关随机给出四张牌（数字1-10），必须用且仅用一次，通过加减乘除和括号算出24。\n" +
+                    "2. 每关限时60秒，每通过两关，后续关卡时限减少5秒，最少10秒。\n" +
+                    "3. 剩余时间会转化为积分，累积在左上角。\n" +
+                    "4. 商店：可用100积分购买“跳关卡”，直接进入下一关（不获得积分）。\n" +
+                    "5. 提示按钮会给出一个可行解法（免费）。\n" +
+                    "6. 计算错误或时间耗尽会有嘲讽，并重置游戏。\n\n" +
+                    "祝你好运，深空旅人！"
+                );
+            }
+
+            // 初始化第一关
+            function initGame() {
+                currentLevel = 1;
+                levelSpan.textContent = currentLevel;
+                timeLimitForThisLevel = calcTimeLimit(currentLevel);
+                timeLeft = timeLimitForThisLevel;
+                timerDisplay.textContent = timeLeft;
+                globalScore = 0;
+                jumpCards = 0;
+                updateScoreDisplay();
+                updateJumpCardDisplay();
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                messageBox.innerHTML = '';
+                stopTimer();
+                startTimer();
+            }
+
+            // 绑定按钮事件
+            function bindEvents() {
+                document.querySelectorAll('.btn[data-op]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const op = btn.getAttribute('data-op');
+                        currentExpr += op;
+                        exprInput.value = currentExpr;
+                    });
+                });
+
+                document.getElementById('backspaceBtn').addEventListener('click', () => {
+                    currentExpr = currentExpr.slice(0, -1);
+                    exprInput.value = currentExpr;
+                });
+
+                document.getElementById('clearBtn').addEventListener('click', () => {
+                    currentExpr = '';
+                    exprInput.value = '';
+                    messageBox.innerHTML = '';
+                });
+
+                document.getElementById('calculateBtn').addEventListener('click', handleCalculate);
+
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    refreshSameLevel();
+                });
+
+                // 购买跳关卡
+                document.getElementById('buyJumpCardBtn').addEventListener('click', () => {
+                    if (globalScore >= 100) {
+                        globalScore -= 100;
+                        jumpCards++;
+                        updateScoreDisplay();
+                        updateJumpCardDisplay();
+                        messageBox.innerHTML = '🛒 购买成功！获得一张跳关卡。';
+                    } else {
+                        messageBox.innerHTML = '<span class="sarcasm">积分不足，无法购买</span>';
+                    }
+                });
+
+                // 使用跳关卡
+                document.getElementById('useJumpCardBtn').addEventListener('click', () => {
+                    if (jumpCards > 0) {
+                        jumpCards--;
+                        updateJumpCardDisplay();
+                        loadNewLevel();
+                        messageBox.innerHTML = '⏩ 使用跳关卡，进入下一关。';
+                    } else {
+                        messageBox.innerHTML = '<span class="sarcasm">没有跳关卡可用</span>';
+                    }
+                });
+
+                // 提示按钮
+                document.getElementById('hintBtn').addEventListener('click', showHint);
+
+                // 规则按钮
+                document.getElementById('rulesBtn').addEventListener('click', showRules);
+            }
+
+            // 启动一切
+            initGame();
+            bindEvents();
+        })();
+    </script>
+</body>
+</html>
