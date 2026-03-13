@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24点 · 深空幻梭 · 账号系统</title>
+    <style>
+        /* 原有样式保留，新增登录界面样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #03050a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 科幻动态背景 (星云粒子) */
+        #cyber-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(0, 40, 80, 0.4) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(20, 10, 50, 0.6) 0%, transparent 55%),
+                        repeating-linear-gradient(45deg, rgba(0,255,255,0.02) 0px, rgba(0,255,255,0.02) 2px, transparent 2px, transparent 10px);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 登录/注册面板 */
+        .auth-panel {
+            position: relative;
+            z-index: 40;
+            width: 100%;
+            max-width: 500px;
+            background: rgba(5, 15, 28, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 3rem;
+            padding: 3rem 2rem;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            box-shadow: 0 0 80px rgba(0, 180, 255, 0.4);
+            text-align: center;
+        }
+
+        .auth-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #a8e0ff, #7aaaff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px cyan);
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            margin: 0.8rem 0;
+            background: rgba(0, 30, 50, 0.7);
+            border: 1px solid #00ffff80;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            color: #e0f0ff;
+            outline: none;
+            transition: 0.2s;
+        }
+        .auth-input:focus {
+            border-color: cyan;
+            box-shadow: 0 0 20px cyan;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0 1rem;
+        }
+        .auth-btn {
+            flex: 1;
+            background: rgba(0, 50, 80, 0.8);
+            border: 1px solid cyan;
+            color: white;
+            padding: 1rem;
+            border-radius: 60px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .auth-btn:hover {
+            background: #006699;
+            box-shadow: 0 0 30px cyan;
+            transform: translateY(-3px);
+        }
+
+        .auth-error {
+            color: #ff9680;
+            font-size: 1.1rem;
+            min-height: 2rem;
+            text-shadow: 0 0 10px #ff3300;
+        }
+
+        /* 模式选择界面 */
+        .mode-selector {
+            position: relative;
+            z-index: 30;
+            width: 100%;
+            max-width: 800px;
+            background: rgba(5, 15, 28, 0.5);
+            backdrop-filter: blur(20px);
+            border-radius: 4rem;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 50px rgba(0, 180, 255, 0.3);
+            text-align: center;
+            display: none; /* 初始隐藏 */
+        }
+
+        .mode-title {
+            font-size: 3rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #a8e0ff, #7aaaff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px cyan);
+        }
+
+        .mode-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .mode-btn {
+            background: rgba(0, 30, 50, 0.8);
+            backdrop-filter: blur(8px);
+            border: 2px solid #00ffff80;
+            border-radius: 40px;
+            padding: 1.5rem 2.5rem;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #e0f0ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px #00a6ff;
+            min-width: 200px;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-8px);
+            background: #004466;
+            box-shadow: 0 0 50px cyan;
+            border-color: cyan;
+        }
+
+        .mode-desc {
+            color: #aac8ff;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+            opacity: 0.8;
+        }
+
+        /* 帮助按钮 */
+        .help-btn {
+            margin-top: 2rem;
+            display: inline-block;
+            background: rgba(0, 40, 60, 0.8);
+            border: 2px solid #ffaa00;
+            border-radius: 40px;
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            color: #ffe6a0;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 30px #ffaa00;
+        }
+        .help-btn:hover {
+            transform: translateY(-5px);
+            background: #ffaa0030;
+            box-shadow: 0 0 50px #ffaa00;
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            max-width: 880px;
+            background: rgba(5, 15, 28, 0.4);
+            backdrop-filter: blur(16px) saturate(200%);
+            -webkit-backdrop-filter: blur(16px) saturate(200%);
+            border-radius: 4rem;
+            padding: 2rem 2rem;
+            box-shadow: 0 30px 60px -20px #000,
+                        0 0 0 1px rgba(0, 255, 255, 0.15) inset,
+                        0 0 40px rgba(0, 180, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: box-shadow 0.4s;
+            animation: borderPulse 6s infinite alternate;
+            display: none;
+        }
+
+        @keyframes borderPulse {
+            0% { box-shadow: 0 30px 60px -20px #000, 0 0 0 1px rgba(0, 255, 255, 0.2) inset, 0 0 30px rgba(0, 180, 255, 0.3); }
+            100% { box-shadow: 0 40px 70px -15px #000, 0 0 0 2px rgba(100, 200, 255, 0.4) inset, 0 0 60px rgba(0, 240, 255, 0.5); }
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: rgba(0, 20, 40, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid cyan;
+            color: cyan;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 25;
+            transition: 0.2s;
+        }
+        .back-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px cyan;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .title-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-title {
+            font-size: 2.2rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #a8e0ff, #7aaaff, #c0b0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 15px #00a6ff);
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+
+        .score-area {
+            font-size: 1.3rem;
+            color: #ffd966;
+            text-shadow: 0 0 10px #ffaa00;
+            margin-top: 0.2rem;
+        }
+
+        .score-area span {
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: #fff3b0;
+        }
+
+        .level-badge {
+            background: rgba(0, 20, 40, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: 500;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 15px cyan;
+            color: #b0f0ff;
+        }
+
+        .level-badge span {
+            font-weight: 700;
+            color: #fff;
+            margin-left: 0.5rem;
+            font-size: 1.8rem;
+            text-shadow: 0 0 15px cyan;
+        }
+
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(0, 10, 25, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            border: 1px solid #00ffff40;
+            box-shadow: 0 0 20px #00b3ff;
+        }
+
+        .timer-icon {
+            font-size: 1.8rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px cyan);
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #f0fcff;
+            text-shadow: 0 0 15px #00ccff, 0 0 30px #006eff;
+            min-width: 80px;
+            text-align: center;
+            letter-spacing: 3px;
+        }
+
+        .timer-unit {
+            font-size: 1.2rem;
+            color: #8ab3ff;
+        }
+
+        .cards-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 2rem 0 2rem;
+            perspective: 1200px;
+        }
+
+        .card {
+            flex: 0 0 auto;
+            width: 130px;
+            height: 170px;
+            background: linear-gradient(145deg, #102436, #05101f);
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 30px -10px black,
+                        inset 0 0 0 1px rgba(0, 255, 255, 0.3),
+                        inset 0 -4px 8px rgba(0,0,0,0.8),
+                        0 0 20px #00a6ff40;
+            border: 1px solid #00ffff60;
+            transition: transform 0.25s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            animation: cardFloat 4s infinite alternate;
+            position: relative;
+        }
+
+        .card.face-down {
+            background: linear-gradient(145deg, #1a2a3a, #0a1a2a);
+            border-color: #ffaa0060;
+            box-shadow: 0 0 30px #ffaa0030;
+        }
+        .card.face-down .card-value,
+        .card.face-down .card-suit {
+            display: none;
+        }
+        .card.face-down::after {
+            content: "?";
+            font-size: 5rem;
+            color: #ffaa00;
+            text-shadow: 0 0 20px orange;
+            opacity: 0.8;
+        }
+
+        .card.used {
+            opacity: 0.6;
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+
+        .card.highlight {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px cyan;
+            transition: 0.1s;
+        }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.03) rotateY(3deg);
+            box-shadow: 0 30px 40px -10px #000, 0 0 0 2px cyan, 0 0 40px cyan;
+        }
+
+        .card-value {
+            font-size: 5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0ffc0, #fffac2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px #ffee90, 0 0 40px #4effb5;
+        }
+
+        .card-suit {
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            color: #00ffffaa;
+            text-transform: uppercase;
+        }
+
+        .expression-panel {
+            background: rgba(0, 10, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 60px;
+            padding: 1.2rem 2rem;
+            margin: 1.2rem 0 1.8rem;
+            border: 1px solid cyan;
+            box-shadow: inset 0 2px 10px #000000, 0 10px 20px -10px black, 0 0 30px #0044ff;
+        }
+
+        .expression-display {
+            background: transparent;
+            width: 100%;
+            border: none;
+            outline: none;
+            color: #e2f0ff;
+            font-size: 2.1rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            caret-color: cyan;
+            text-shadow: 0 0 10px cyan;
+        }
+
+        .expression-display::placeholder {
+            color: #1a4f7a;
+            font-size: 1.4rem;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin: 1.2rem 0 0.8rem;
+        }
+
+        .btn {
+            background: rgba(0, 25, 45, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid #00a6ff60;
+            border-bottom-width: 3px;
+            border-bottom-color: #002c50;
+            color: #c3f0ff;
+            font-size: 2rem;
+            font-weight: 500;
+            padding: 1rem 0;
+            border-radius: 36px;
+            box-shadow: 0 10px 12px -8px black, inset 0 1px 2px cyan, 0 0 10px #006eff;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .btn.small { font-size: 1.5rem; padding: 0.7rem 0; }
+        .btn.wide { grid-column: span 2; }
+        .btn.operator { background: rgba(0, 60, 100, 0.8); color: #ffffb0; font-size: 2.3rem; }
+        .btn.action { background: rgba(0, 30, 60, 0.9); font-size: 1.8rem; }
+        .btn.equal { background: linear-gradient(145deg, #0077be, #003d66); border-bottom-color: #001d33; color: white; font-weight: 600; text-shadow: 0 2px 10px cyan; }
+
+        .btn:hover {
+            background: #005f9e;
+            border-bottom-color: cyan;
+            transform: translateY(-2px);
+            box-shadow: 0 16px 20px -10px #030613, 0 0 30px cyan;
+        }
+        .btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 1px;
+        }
+
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0 0.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .left-panel {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(0, 20, 35, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            border: 1px solid #00ffcc40;
+            color: #b3ffe0;
+            font-size: 1.3rem;
+        }
+
+        .left-panel span {
+            font-weight: 700;
+            color: #fff;
+            font-size: 1.8rem;
+            margin-left: 0.3rem;
+            text-shadow: 0 0 10px cyan;
+        }
+
+        .right-panel {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .right-panel .btn {
+            font-size: 1.3rem;
+            padding: 0.6rem 1.5rem;
+            background: rgba(0, 50, 70, 0.9);
+        }
+
+        .hint-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .message-area {
+            min-height: 4rem;
+            margin: 0.5rem 0 0.5rem;
+            font-size: 1.4rem;
+            text-align: center;
+            color: #bbffff;
+            text-shadow: 0 0 15px magenta;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        .congrats {
+            color: #ffde7a;
+            font-size: 1.8rem;
+            text-shadow: 0 0 30px #ffaa00, 0 0 60px #ff6a00;
+            animation: glowPulse 1.5s infinite;
+        }
+        .sarcasm {
+            color: #ff9680;
+            font-size: 1.7rem;
+            text-shadow: 0 0 20px #ff3300;
+        }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 15px #ffb347; }
+            50% { text-shadow: 0 0 35px #ffd966, 0 0 15px #f1c40f; }
+            100% { text-shadow: 0 0 15px #ffb347; }
+        }
+
+        .foot-note {
+            color: #5f9fbf;
+            font-size: 0.95rem;
+            text-align: center;
+            margin-top: 0.8rem;
+            border-top: 1px dashed #00aaff60;
+            padding-top: 1rem;
+        }
+
+        @media (max-width: 700px) {
+            .game-container { padding: 1.5rem 1rem; }
+            .card { width: 100px; height: 140px; }
+            .card-value { font-size: 4rem; }
+            .btn { font-size: 1.5rem; padding: 0.8rem 0; }
+            .button-grid { gap: 0.6rem; }
+            .header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cyber-canvas"></canvas>
+
+    <!-- 登录/注册面板 -->
+    <div class="auth-panel" id="authPanel">
+        <div class="auth-title">🚀 深空登录</div>
+        <input type="text" class="auth-input" id="loginUsername" placeholder="用户名" autocomplete="off">
+        <input type="password" class="auth-input" id="loginPassword" placeholder="密码">
+        <div class="auth-buttons">
+            <div class="auth-btn" id="loginBtn">登录</div>
+            <div class="auth-btn" id="registerBtn">注册</div>
+        </div>
+        <div class="auth-error" id="authMessage"></div>
+    </div>
+
+    <!-- 模式选择界面（含帮助按钮） -->
+    <div class="mode-selector" id="modeSelector">
+        <div class="mode-title">⚡ 选择游戏模式 ⚡</div>
+        <div class="mode-buttons">
+            <div class="mode-btn" id="modeEndless">🌌 无尽模式</div>
+            <div class="mode-btn" id="modeTimed">⏳ 限时模式</div>
+            <div class="mode-btn" id="modeCasual">🧠 休闲模式</div>
+        </div>
+        <div class="mode-desc" id="welcomeMsg"></div>
+        <!-- 帮助按钮 -->
+        <div class="help-btn" id="helpBtn">📖 游戏帮助</div>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div class="game-container" id="gameContainer">
+        <div class="back-btn" id="backToMenuBtn">← 返回菜单</div>
+
+        <div class="header">
+            <div class="title-area">
+                <div class="game-title">◈ 深空·24点 ◈</div>
+                <div class="score-area" id="scoreArea">积分: <span id="scoreValue">0</span></div>
+            </div>
+            <div class="level-badge">关卡 <span id="levelDisplay">1</span></div>
+            <div class="timer-section" id="timerSection">
+                <span class="timer-icon">⌛</span>
+                <span id="timerDisplay" class="timer-display">60</span>
+                <span class="timer-unit">秒</span>
+            </div>
+        </div>
+
+        <!-- 四张卡牌 -->
+        <div class="cards-row" id="cardsContainer"></div>
+
+        <!-- 表达式显示区 -->
+        <div class="expression-panel">
+            <input type="text" id="exprInput" class="expression-display" readonly placeholder="点击卡牌和运算符构建算式" value="">
+        </div>
+
+        <!-- 按钮面板 -->
+        <div class="button-grid">
+            <div class="btn operator" data-op="+">+</div>
+            <div class="btn operator" data-op="−">−</div>
+            <div class="btn operator" data-op="*">×</div>
+            <div class="btn operator" data-op="/">÷</div>
+            <div class="btn small" data-op="(">(</div>
+            <div class="btn small" data-op=")">)</div>
+
+            <div class="btn action wide" id="backspaceBtn">⌫ 退格</div>
+            <div class="btn action" id="clearBtn">C 清空</div>
+            <div class="btn equal wide" id="calculateBtn">= 计算</div>
+        </div>
+
+        <!-- 刷新当前关卡 -->
+        <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+            <div class="btn action" id="refreshBtn" style="padding: 0.6rem 2rem; font-size: 1.3rem;">⟳ 量子重洗</div>
+        </div>
+
+        <!-- 底部工具栏 -->
+        <div class="game-footer" id="shopPanel">
+            <div class="left-panel">
+                <span>🔮 跳关卡:</span>
+                <span id="jumpCardCount">0</span>
+                <div class="btn small" id="useJumpCardBtn" style="padding: 0.4rem 1.2rem; font-size: 1.2rem;">使用</div>
+            </div>
+            <div class="right-panel">
+                <div class="btn small" id="buyJumpCardBtn" style="padding: 0.6rem 1.8rem;">🛒 购买跳关卡 (100积分)</div>
+            </div>
+        </div>
+
+        <!-- 提示按钮行（移除了规则按钮） -->
+        <div class="hint-row" id="hintRow">
+            <div class="btn small" id="hintBtn">💡 提示</div>
+        </div>
+
+        <div id="messageBox" class="message-area"></div>
+        <div class="foot-note" id="footNote">⚡ 每关限时 · 两关减5秒 · 最少10秒 · 剩余时间变积分 ⚡</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 科幻粒子背景 (Canvas) ----------
+            const canvas = document.getElementById('cyber-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+
+            function initParticles() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+
+                const particleCount = 120;
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 2.5 + 1,
+                        speedX: (Math.random() - 0.5) * 0.35,
+                        speedY: (Math.random() - 0.5) * 0.25,
+                        color: `rgba(${100 + Math.random()*100}, ${150 + Math.random()*100}, 255, ${Math.random()*0.5+0.3})`,
+                        glow: Math.random() * 0.8 + 0.4
+                    });
+                }
+            }
+
+            function drawParticles() {
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = '#03050a';
+                ctx.fillRect(0, 0, width, height);
+
+                let gradient = ctx.createRadialGradient(width*0.3, height*0.4, 100, width*0.3, height*0.4, 800);
+                gradient.addColorStop(0, 'rgba(0,100,200,0.15)');
+                gradient.addColorStop(1, 'rgba(0,0,30,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                gradient = ctx.createRadialGradient(width*0.8, height*0.7, 200, width*0.8, height*0.7, 1000);
+                gradient.addColorStop(0, 'rgba(80,20,150,0.2)');
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                for (let p of particles) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = '#aaccff';
+                    ctx.shadowBlur = 12 * p.glow;
+                    ctx.fill();
+
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    if (p.x < 0) p.x = width;
+                    if (p.x > width) p.x = 0;
+                    if (p.y < 0) p.y = height;
+                    if (p.y > height) p.y = 0;
+                }
+                ctx.shadowBlur = 0;
+                requestAnimationFrame(drawParticles);
+            }
+
+            window.addEventListener('resize', () => {
+                initParticles();
+            });
+            initParticles();
+            drawParticles();
+
+            // ---------- 用户系统 ----------
+            const STORAGE_KEY = '24game_users';
+            let currentUser = null; // 存储当前用户数据
+
+            function loadUsers() {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : {};
+            }
+
+            function saveUsers(users) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+            }
+
+            function hashPassword(pwd) {
+                return btoa(pwd);
+            }
+
+            function setAuthMessage(msg, isError = true) {
+                document.getElementById('authMessage').innerHTML = msg;
+            }
+
+            function loginSuccess(user) {
+                currentUser = user;
+                document.getElementById('authPanel').style.display = 'none';
+                document.getElementById('modeSelector').style.display = 'block';
+                document.getElementById('welcomeMsg').innerText = `欢迎回来，${user.nickname || user.username}！`;
+                globalScore = user.endless?.score || 0;
+                jumpCards = user.endless?.jumpCards || 0;
+                currentLevel = user.endless?.level || 1;
+                updateScoreDisplay();
+                updateJumpCardDisplay();
+            }
+
+            document.getElementById('registerBtn').addEventListener('click', () => {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value.trim();
+                if (!username || !password) {
+                    setAuthMessage('用户名和密码不能为空');
+                    return;
+                }
+                const users = loadUsers();
+                if (users[username]) {
+                    setAuthMessage('用户名已存在');
+                    return;
+                }
+                const nickname = prompt('请输入您的游戏昵称（用于显示）', username);
+                if (!nickname) return;
+                const newUser = {
+                    username: username,
+                    password: hashPassword(password),
+                    nickname: nickname,
+                    endless: { score: 0, jumpCards: 0, level: 1 },
+                    timed: { streak: 0, bestTime: 0 }
+                };
+                users[username] = newUser;
+                saveUsers(users);
+                setAuthMessage('注册成功，请登录', false);
+            });
+
+            document.getElementById('loginBtn').addEventListener('click', () => {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value.trim();
+                if (!username || !password) {
+                    setAuthMessage('请输入用户名和密码');
+                    return;
+                }
+                const users = loadUsers();
+                const user = users[username];
+                if (!user || user.password !== hashPassword(password)) {
+                    setAuthMessage('用户名或密码错误');
+                    return;
+                }
+                loginSuccess(user);
+            });
+
+            function saveCurrentUser() {
+                if (!currentUser) return;
+                const users = loadUsers();
+                const user = users[currentUser.username];
+                if (user) {
+                    user.endless = {
+                        score: globalScore,
+                        jumpCards: jumpCards,
+                        level: currentLevel
+                    };
+                    saveUsers(users);
+                }
+            }
+
+            // 游戏核心变量
+            let currentMode = 'endless';
+            let currentLevel = 1;
+            let currentCards = [];
+            let currentExpr = '';
+            let globalScore = 0;
+            let jumpCards = 0;
+            let timeLeft = 60;
+            let timeLimitForThisLevel = 60;
+            let timerInterval = null;
+            const INITIAL_TIME = 60;
+            const MIN_TIME = 10;
+            let timedStreak = 0;
+            let isCasualAnimating = false;
+            let casualCardValues = [];
+            let casualCardUsed = [];
+
+            // DOM 元素
+            const modeSelector = document.getElementById('modeSelector');
+            const gameContainer = document.getElementById('gameContainer');
+            const levelSpan = document.getElementById('levelDisplay');
+            const cardsDiv = document.getElementById('cardsContainer');
+            const exprInput = document.getElementById('exprInput');
+            const messageBox = document.getElementById('messageBox');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const timerSection = document.getElementById('timerSection');
+            const scoreArea = document.getElementById('scoreArea');
+            const scoreSpan = document.getElementById('scoreValue');
+            const jumpCardSpan = document.getElementById('jumpCardCount');
+            const shopPanel = document.getElementById('shopPanel');
+            const hintBtn = document.getElementById('hintBtn');
+            const footNote = document.getElementById('footNote');
+            const refreshBtn = document.getElementById('refreshBtn');
+
+            function updateScoreDisplay() {
+                scoreSpan.textContent = globalScore;
+            }
+            function updateJumpCardDisplay() {
+                jumpCardSpan.textContent = jumpCards;
+            }
+
+            function calcTimeLimit(level) {
+                let deduction = Math.floor((level - 1) / 2) * 5;
+                return Math.max(MIN_TIME, INITIAL_TIME - deduction);
+            }
+
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+
+            function startTimer() {
+                stopTimer();
+                if (currentMode === 'casual') return;
+                timerInterval = setInterval(() => {
+                    timeLeft -= 1;
+                    timerDisplay.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        timerDisplay.textContent = '0';
+                        stopTimer();
+                        if (currentMode === 'endless') {
+                            messageBox.innerHTML = '<span class="sarcasm">⏰ 闯关失败，从头再来...</span>';
+                            resetGame();
+                        } else if (currentMode === 'timed') {
+                            messageBox.innerHTML = '<span class="sarcasm">⏰ 时间耗尽，挑战失败</span>';
+                            setTimeout(() => backToMenu(), 1500);
+                        }
+                    }
+                }, 1000);
+            }
+
+            function resetGame() {
+                stopTimer();
+                currentLevel = 1;
+                levelSpan.textContent = currentLevel;
+                timeLimitForThisLevel = calcTimeLimit(currentLevel);
+                timeLeft = timeLimitForThisLevel;
+                timerDisplay.textContent = timeLeft;
+                globalScore = 0;
+                jumpCards = 0;
+                updateScoreDisplay();
+                updateJumpCardDisplay();
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                startTimer();
+            }
+
+            function loadNewLevel() {
+                if (currentMode === 'casual') {
+                    startCasualLevel();
+                    return;
+                }
+                stopTimer();
+                if (currentMode === 'endless') {
+                    currentLevel++;
+                    levelSpan.textContent = currentLevel;
+                    timeLimitForThisLevel = calcTimeLimit(currentLevel);
+                    timeLeft = timeLimitForThisLevel;
+                    timerDisplay.textContent = timeLeft;
+                } else if (currentMode === 'timed') {
+                    currentLevel++;
+                    levelSpan.textContent = currentLevel;
+                    timeLeft += 20;
+                    timerDisplay.textContent = timeLeft;
+                    timedStreak++;
+                    if (timeLeft >= 120 || timedStreak >= 20) {
+                        messageBox.innerHTML = '<span class="congrats">🎉 挑战成功！你太强了！</span>';
+                        stopTimer();
+                        setTimeout(backToMenu, 2000);
+                        return;
+                    }
+                }
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                startTimer();
+            }
+
+            function refreshSameLevel() {
+                if (currentMode === 'casual') {
+                    startCasualLevel();
+                    return;
+                }
+                stopTimer();
+                currentCards = generateValidCards();
+                renderCards();
+                currentExpr = '';
+                exprInput.value = '';
+                timerDisplay.textContent = timeLeft;
+                messageBox.innerHTML = '';
+                startTimer();
+            }
+
+            const EPS = 1e-6;
+            function isCloseTo24(val) {
+                return Math.abs(val - 24) < EPS;
+            }
+
+            function hasSolution(nums) {
+                if (nums.length === 1) return isCloseTo24(nums[0]);
+                const n = nums.length;
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        const a = nums[i];
+                        const b = nums[j];
+                        const remaining = nums.filter((_, idx) => idx !== i && idx !== j);
+                        const candidates = [
+                            a + b,
+                            a * b,
+                            a - b,
+                            b - a,
+                            a !== 0 ? b / a : null,
+                            b !== 0 ? a / b : null
+                        ];
+                        const results = new Set();
+                        for (let val of candidates) {
+                            if (val !== null && !isNaN(val)) {
+                                results.add(Math.round(val * 1e8) / 1e8);
+                            }
+                        }
+                        for (let val of results) {
+                            if (hasSolution([val, ...remaining])) return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            function findSolution(nums) {
+                let items = nums.map(n => ({ val: n, expr: n.toString() }));
+                function search(items) {
+                    if (items.length === 1) {
+                        if (isCloseTo24(items[0].val)) return items[0].expr;
+                        else return null;
+                    }
+                    const n = items.length;
+                    for (let i = 0; i < n; i++) {
+                        for (let j = i + 1; j < n; j++) {
+                            const a = items[i];
+                            const b = items[j];
+                            const remaining = items.filter((_, idx) => idx !== i && idx !== j);
+                            const ops = [
+                                { op: '+', func: (x,y) => x + y, expr: (x,y) => `(${x} + ${y})` },
+                                { op: '*', func: (x,y) => x * y, expr: (x,y) => `(${x} * ${y})` },
+                                { op: '-', func: (x,y) => x - y, expr: (x,y) => `(${x} - ${y})` },
+                                { op: '-', func: (x,y) => y - x, expr: (x,y) => `(${y} - ${x})` },
+                                { op: '/', func: (x,y) => x / y, expr: (x,y) => `(${x} / ${y})` },
+                                { op: '/', func: (x,y) => y / x, expr: (x,y) => `(${y} / ${x})` }
+                            ];
+                            for (let op of ops) {
+                                const val = op.func(a.val, b.val);
+                                if (isNaN(val) || !isFinite(val)) continue;
+                                const expr = op.expr(a.expr, b.expr);
+                                const newItem = { val, expr };
+                                const result = search([newItem, ...remaining]);
+                                if (result) return result;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                return search(items);
+            }
+
+            function generateValidCards() {
+                const maxAttempts = 400;
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    const candidate = [
+                        Math.floor(Math.random() * 10) + 1,
+                        Math.floor(Math.random() * 10) + 1,
+                        Math.floor(Math.random() * 10) + 1,
+                        Math.floor(Math.random() * 10) + 1
+                    ];
+                    const allEqual = candidate.every(v => v === candidate[0]);
+                    if (allEqual) continue;
+                    if (hasSolution(candidate)) {
+                        return candidate;
+                    }
+                }
+                return [3, 4, 6, 8];
+            }
+
+            function renderCards(isFaceDown = false, used = []) {
+                const cards = currentMode === 'casual' ? casualCardValues : currentCards;
+                let html = '';
+                cards.forEach((val, idx) => {
+                    const suitSymbol = ['♠', '♥', '♦', '♣'][idx % 4];
+                    const faceClass = isFaceDown ? 'face-down' : '';
+                    const usedClass = (used && used[idx]) ? 'used' : '';
+                    html += `
+                        <div class="card ${faceClass} ${usedClass}" data-card-value="${val}" data-card-index="${idx}">
+                            <div class="card-value">${val}</div>
+                            <div class="card-suit">${suitSymbol}</div>
+                        </div>
+                    `;
+                });
+                cardsDiv.innerHTML = html;
+
+                document.querySelectorAll('.card').forEach(card => {
+                    card.addEventListener('click', onCardClick);
+                });
+            }
+
+            function onCardClick(e) {
+                const card = e.currentTarget;
+                const idx = card.dataset.cardIndex;
+                if (currentMode === 'casual') {
+                    if (isCasualAnimating) return;
+                    if (casualCardUsed[idx]) return;
+                    if (card.classList.contains('face-down')) {
+                        const val = card.getAttribute('data-card-value');
+                        card.innerHTML = `<div class="card-value">${val}</div><div class="card-suit">${['♠','♥','♦','♣'][idx % 4]}</div>`;
+                        card.classList.remove('face-down');
+                        currentExpr += val;
+                        exprInput.value = currentExpr;
+                        casualCardUsed[idx] = true;
+                        setTimeout(() => {
+                            card.classList.add('face-down');
+                            card.classList.add('used');
+                            card.innerHTML = '';
+                        }, 500);
+                    }
+                } else {
+                    const val = card.getAttribute('data-card-value');
+                    currentExpr += val;
+                    exprInput.value = currentExpr;
+                }
+            }
+
+            function startCasualLevel() {
+                stopTimer();
+                isCasualAnimating = true;
+                casualCardValues = generateValidCards();
+                casualCardUsed = [false, false, false, false];
+                renderCards(false);
+                messageBox.innerHTML = '⏳ 记住卡牌...';
+                setTimeout(() => {
+                    document.querySelectorAll('.card').forEach(c => c.classList.add('face-down'));
+                    messageBox.innerHTML = '🔄 开始交换...';
+                    let swapCount = 0;
+                    function doSwap() {
+                        if (swapCount >= 4) {
+                            isCasualAnimating = false;
+                            messageBox.innerHTML = '🧠 点击背面查看数字（每张牌只能用一次）';
+                            return;
+                        }
+                        const cards = document.querySelectorAll('.card');
+                        const idx1 = Math.floor(Math.random() * cards.length);
+                        let idx2 = Math.floor(Math.random() * cards.length);
+                        while (idx2 === idx1) idx2 = Math.floor(Math.random() * cards.length);
+                        cards[idx1].classList.add('highlight');
+                        cards[idx2].classList.add('highlight');
+                        const val1 = cards[idx1].getAttribute('data-card-value');
+                        const val2 = cards[idx2].getAttribute('data-card-value');
+                        cards[idx1].setAttribute('data-card-value', val2);
+                        cards[idx2].setAttribute('data-card-value', val1);
+                        [casualCardValues[idx1], casualCardValues[idx2]] = [casualCardValues[idx2], casualCardValues[idx1]];
+                        setTimeout(() => {
+                            cards[idx1].classList.remove('highlight');
+                            cards[idx2].classList.remove('highlight');
+                            swapCount++;
+                            setTimeout(doSwap, 300);
+                        }, 200);
+                    }
+                    doSwap();
+                }, 3000);
+            }
+
+            function handleCalculate() {
+                if (!currentExpr.trim()) {
+                    messageBox.innerHTML = '📡 请先构建表达式';
+                    return;
+                }
+
+                const cards = currentMode === 'casual' ? casualCardValues : currentCards;
+                if (!isNumbersMatch(currentExpr, cards)) {
+                    messageBox.innerHTML = '<span class="sarcasm">不是哥们你这么菜吗</span> (数字必须每个用一次)';
+                    return;
+                }
+
+                let result;
+                try {
+                    const safeExpr = currentExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+                    result = eval(safeExpr);
+                    if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) throw new Error();
+                } catch (e) {
+                    messageBox.innerHTML = '<span class="sarcasm">不是哥们你这么菜吗</span> (算式无效)';
+                    return;
+                }
+
+                if (isCloseTo24(result)) {
+                    if (currentMode === 'endless') {
+                        globalScore += timeLeft;
+                        updateScoreDisplay();
+                        alert('恭喜通关，进入下一关');
+                        loadNewLevel();
+                    } else if (currentMode === 'timed') {
+                        loadNewLevel();
+                    } else if (currentMode === 'casual') {
+                        alert('恭喜通关，进入下一关');
+                        loadNewLevel();
+                    }
+                } else {
+                    messageBox.innerHTML = `<span class="sarcasm">不是哥们你这么菜吗</span> (结果 = ${result})`;
+                }
+            }
+
+            function isNumbersMatch(expr, cards) {
+                const numberMatches = expr.match(/\d+/g);
+                if (!numberMatches) return cards.length === 0;
+                const exprNumbers = numberMatches.map(Number).sort((a,b)=>a-b);
+                const cardNumbers = [...cards].sort((a,b)=>a-b);
+                if (exprNumbers.length !== cardNumbers.length) return false;
+                for (let i=0; i<exprNumbers.length; i++) {
+                    if (exprNumbers[i] !== cardNumbers[i]) return false;
+                }
+                return true;
+            }
+
+            function showHint() {
+                if (currentMode === 'timed' || currentMode === 'casual') {
+                    messageBox.innerHTML = '<span class="sarcasm">当前模式无提示</span>';
+                    return;
+                }
+                const solution = findSolution(currentCards);
+                if (solution) {
+                    messageBox.innerHTML = `💡 提示：${solution} = 24`;
+                } else {
+                    messageBox.innerHTML = '<span class="sarcasm">无法找到解法？这不应该发生。</span>';
+                }
+            }
+
+            // 帮助按钮（在模式选择界面）
+            document.getElementById('helpBtn').addEventListener('click', () => {
+                alert(
+                    "📖 游戏帮助\n\n" +
+                    "🌌 无尽模式：\n" +
+                    "   - 每关限时，两关减5秒，最少10秒\n" +
+                    "   - 剩余时间转为积分\n" +
+                    "   - 商店可购买跳关卡（100积分）\n" +
+                    "   - 提示按钮可用\n\n" +
+                    "⏳ 限时模式：\n" +
+                    "   - 初始60秒，每正确通关+20秒\n" +
+                    "   - 时间达到120秒或连续通关20关即胜利\n" +
+                    "   - 无提示，无商店\n\n" +
+                    "🧠 休闲模式：\n" +
+                    "   - 无时间限制\n" +
+                    "   - 卡牌显示3秒后翻面\n" +
+                    "   - 随机交换4次，记住数字\n" +
+                    "   - 点击背面可临时查看数字（每张牌只能用一次）并加入表达式\n\n" +
+                    "祝您游戏愉快！"
+                );
+            });
+
+            function backToMenu() {
+                stopTimer();
+                saveCurrentUser();
+                gameContainer.style.display = 'none';
+                modeSelector.style.display = 'block';
+            }
+
+            function initMode(mode) {
+                currentMode = mode;
+                modeSelector.style.display = 'none';
+                gameContainer.style.display = 'block';
+
+                stopTimer();
+                currentLevel = 1;
+                levelSpan.textContent = currentLevel;
+                currentExpr = '';
+                exprInput.value = '';
+                messageBox.innerHTML = '';
+
+                if (mode === 'endless') {
+                    scoreArea.style.display = 'block';
+                    shopPanel.style.display = 'flex';
+                    hintBtn.style.display = 'inline-block';
+                    timerSection.style.display = 'flex';
+                    footNote.innerText = '⚡ 每关限时 · 两关减5秒 · 最少10秒 · 剩余时间变积分 ⚡';
+                    globalScore = currentUser?.endless?.score || 0;
+                    jumpCards = currentUser?.endless?.jumpCards || 0;
+                    currentLevel = currentUser?.endless?.level || 1;
+                    levelSpan.textContent = currentLevel;
+                    updateScoreDisplay();
+                    updateJumpCardDisplay();
+                    timeLimitForThisLevel = calcTimeLimit(currentLevel);
+                    timeLeft = timeLimitForThisLevel;
+                    timerDisplay.textContent = timeLeft;
+                    currentCards = generateValidCards();
+                    renderCards();
+                    startTimer();
+                } else if (mode === 'timed') {
+                    scoreArea.style.display = 'none';
+                    shopPanel.style.display = 'none';
+                    hintBtn.style.display = 'none';
+                    timerSection.style.display = 'flex';
+                    footNote.innerText = '⏳ 限时模式：每关+20秒，达到120秒或20关胜利';
+                    timeLeft = 60;
+                    timerDisplay.textContent = timeLeft;
+                    timedStreak = 0;
+                    currentCards = generateValidCards();
+                    renderCards();
+                    startTimer();
+                } else if (mode === 'casual') {
+                    scoreArea.style.display = 'none';
+                    shopPanel.style.display = 'none';
+                    hintBtn.style.display = 'none';
+                    timerSection.style.display = 'none';
+                    footNote.innerText = '🧠 休闲模式：记忆翻牌交换（每张牌只能用一次）';
+                    startCasualLevel();
+                }
+            }
+
+            document.getElementById('modeEndless').addEventListener('click', () => initMode('endless'));
+            document.getElementById('modeTimed').addEventListener('click', () => initMode('timed'));
+            document.getElementById('modeCasual').addEventListener('click', () => initMode('casual'));
+            document.getElementById('backToMenuBtn').addEventListener('click', backToMenu);
+
+            document.querySelectorAll('.btn[data-op]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const op = btn.getAttribute('data-op');
+                    currentExpr += op;
+                    exprInput.value = currentExpr;
+                });
+            });
+
+            document.getElementById('backspaceBtn').addEventListener('click', () => {
+                currentExpr = currentExpr.slice(0, -1);
+                exprInput.value = currentExpr;
+            });
+
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                currentExpr = '';
+                exprInput.value = '';
+                messageBox.innerHTML = '';
+            });
+
+            document.getElementById('calculateBtn').addEventListener('click', handleCalculate);
+
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                refreshSameLevel();
+            });
+
+            document.getElementById('buyJumpCardBtn').addEventListener('click', () => {
+                if (currentMode !== 'endless') return;
+                if (globalScore >= 100) {
+                    globalScore -= 100;
+                    jumpCards++;
+                    updateScoreDisplay();
+                    updateJumpCardDisplay();
+                    messageBox.innerHTML = '🛒 购买成功！获得一张跳关卡。';
+                } else {
+                    messageBox.innerHTML = '<span class="sarcasm">积分不足，无法购买</span>';
+                }
+            });
+
+            document.getElementById('useJumpCardBtn').addEventListener('click', () => {
+                if (currentMode !== 'endless') return;
+                if (jumpCards > 0) {
+                    jumpCards--;
+                    updateJumpCardDisplay();
+                    loadNewLevel();
+                    messageBox.innerHTML = '⏩ 使用跳关卡，进入下一关。';
+                } else {
+                    messageBox.innerHTML = '<span class="sarcasm">没有跳关卡可用</span>';
+                }
+            });
+
+            hintBtn.addEventListener('click', showHint);
+        })();
+    </script>
+</body>
+</html>
